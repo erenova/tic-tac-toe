@@ -32,7 +32,7 @@ const PlayBoard = (() => {
       _switchTurn();
       console.log(_movesLeft);
       getAsConsoleBoard();
-      checkWinPattern();
+      _checkWinPattern();
       return true; // Valid
     }
   };
@@ -46,13 +46,6 @@ const PlayBoard = (() => {
   const getIndexValue = (index) => [..._board][index];
 
   const getMovesLeft = () => [..._movesLeft];
-  const gameTieState = () => {
-    if (_movesLeft.length === 0 && _winnerState.winnerSign === "") {
-      stopGame();
-      console.log("Game is tie");
-    }
-    return;
-  };
   const stopGame = () => {
     _winnerState.winnerPattern = ``;
 
@@ -70,21 +63,24 @@ const PlayBoard = (() => {
     console.log("New Game Started!");
   };
   /* ["012", "345", "678", "036", "147", "258", "048", "246"] */
-  const checkWinPattern = () => {
+  const _checkWinPattern = () => {
     let isGameEnded = false;
     for (let i = 0; i < _winPatterns.length; i++) {
       if (isGameEnded === false) {
+        //Possible win scenario
         let patterns = [
           _winPatterns[i][0],
           _winPatterns[i][1],
           _winPatterns[i][2],
         ];
+        //Is that scenario filled correctly in the board?
         let activeValues = [
           _board[patterns[0]],
           _board[patterns[1]],
           _board[patterns[2]],
         ];
         let activeSign = activeValues[0];
+        //If So?
         if (
           activeSign !== "-" &&
           activeSign === activeValues[1] &&
@@ -93,7 +89,7 @@ const PlayBoard = (() => {
           _winnerState.wonPattern = `${patterns[0]}${patterns[1]}${patterns[2]}`;
           _winnerState.winnerSign = activeSign;
           console.log(
-            `Winner Pattern is:${_winnerState.wonPattern} Winner Sign is: ${activeSign}`
+            `Winner Pattern:${_winnerState.wonPattern} Winner Sign: ${activeSign}`
           );
           stopGame();
           isGameEnded = true;
@@ -102,6 +98,14 @@ const PlayBoard = (() => {
       }
     }
     gameTieState();
+  };
+
+  const gameTieState = () => {
+    if (_movesLeft.length === 0 && _winnerState.winnerSign === "") {
+      stopGame();
+      console.log("Game is tie");
+    }
+    return;
   };
 
   const getAsConsoleBoard = () => {
@@ -131,19 +135,6 @@ const PlayBoard = (() => {
     getMovesLeft,
     stopGame,
     resetGame,
-    checkWinPattern,
     getAsConsoleBoard,
   });
 })();
-
-const newPlayer = (name = "Player") => {
-  let _name = `${name}`;
-
-  const setName = (newName = "Player") => {
-    if (newName != "") _name = `${newName}`;
-  };
-  const getName = () => {
-    return _name;
-  };
-  return Object.freeze({ setName, getName });
-};
