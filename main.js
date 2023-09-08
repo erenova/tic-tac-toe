@@ -5,31 +5,49 @@ const PlayBoard = (() => {
           O X O
           X O X
   */
-  let _currentTurn = "1";
+  let _currentTurn = null;
   let _movesLeft = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
   const _winPatterns = ["012", "345", "678", "036", "147", "258", "048", "246"];
 
-  let _winnerState = {
-    winnerPattern: "",
-    winnerSign: "",
+  let _gameSettings = {
+    winnerName: undefined,
+    winnerPattern: undefined,
+    winnerSign: undefined,
   };
 
   const _switchTurn = () => {
-    _currentTurn = _currentTurn === "1" ? "2" : "1";
+    _currentTurn = _currentTurn === "0" ? "1" : "0";
+    handleAIUser();
   };
-  const findTurn = () => {
-    let whoseTurn = _currentTurn === "1" ? "X" : "O";
+  const findSign = () => {
+    if (_currentTurn === null) return undefined;
+    let whoseTurn = _currentTurn === "0" ? "X" : "O";
     return whoseTurn;
   };
+  const getTurn = () => {
+    let value = findSign();
+    if (value !== undefined) {
+      let turn =
+        getActivePlayers()[0].playerSign === value
+          ? getActivePlayers()[0]
+          : getActivePlayers()[1];
+      return turn;
+    } else return undefined;
+  };
+
   const makeMove = (moveIndex) => {
     if (moveIndex >= _board.length || _board[moveIndex] !== "-") {
       getAsConsoleBoard();
       return "Can't Place there!"; // Invalid
     }
+
+    if (_currentTurn === null) {
+      return "You need to start the game first.";
+    }
     if (_movesLeft.includes(`${moveIndex}`)) {
       let tempIndex = _movesLeft.findIndex((e) => e === `${moveIndex}`);
       _movesLeft.splice(tempIndex, 1);
-      _board[moveIndex] = findTurn();
+      _board[moveIndex] = findSign();
       _switchTurn();
       console.log(_movesLeft);
       getAsConsoleBoard();
@@ -48,18 +66,55 @@ const PlayBoard = (() => {
 
   const getIndexValue = (index) => [..._board][index];
 
+  let _activePlayers = [];
+
+  const getActivePlayers = () => [..._activePlayers];
+
+  const createPlayer = (name = "player one", state = "human", sign) => {
+    if (_activePlayers.length === 1 && _activePlayers[0].playerName === name) {
+      name += ` (2)`;
+    }
+    state = state === "ai" ? "ai" : "human";
+    let playerSign;
+    if (_activePlayers.length === 1) {
+      playerSign = _activePlayers[0].playerSign === "X" ? "O" : "X";
+    } else if (_activePlayers.length === 0 && (sign === "X" || sign === "O")) {
+      playerSign = sign;
+    } else if (_activePlayers.length === 0) {
+      playerSign = "X";
+    } else if (_activePlayers.length === 2) {
+      return "Please Reset The Game For Add New Player";
+    } else {
+      return "Please Enter The Values In Correct Format";
+    }
+    const playerName = name;
+    const playerState = state;
+    _activePlayers.push(Object.freeze({ playerName, playerState, playerSign }));
+  };
+
+  const startGame = (player1, player2) => {
+    if (player1 === undefined || player2 === undefined) {
+      return `Please Enter Valid Data`;
+    }
+    resetGame();
+    createPlayer(player1.playerName, player1.playerState, player1.playerSign);
+    createPlayer(player2.playerName, player2.playerState, player2.playerSign);
+    _currentTurn = getActivePlayers()[0].playerSign === "X" ? "0" : "1";
+    handleAIUser();
+  };
+
   const _stopGame = () => {
-    _winnerState.winnerPattern = ``;
+    _gameSettings.winnerPattern = undefined;
     _movesLeft = [];
-    _currentTurn = "1";
-    console.log("Game Ended!");
+    _activePlayers = [];
+    _currentTurn = null;
+    console.log("Game Over");
   };
 
   const resetGame = () => {
-    _winnerState.winnerSign = ``;
+    _gameSettings.winnerSign = undefined;
     _stopGame();
     _movesLeft = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
-
     _board.fill("-");
     console.log("New Game Started!");
   };
@@ -83,7 +138,11 @@ const PlayBoard = (() => {
         activeSign === activeValues[1] &&
         activeSign === activeValues[2]
       ) {
+        let name = getActivePlayers().find(
+          (item) => item.playerSign === `${activeSign}`
+        ).playerName;
         return {
+          name,
           sign: activeSign,
           pattern: `${patterns[0]}${patterns[1]}${patterns[2]}`,
         };
@@ -94,11 +153,13 @@ const PlayBoard = (() => {
 
   const _decideGameState = (gameboard) => {
     const winner = _checkWinPattern(gameboard);
+
     if (winner !== null) {
-      _winnerState.winnerSign = winner.sign;
-      _winnerState.winnerPattern = winner.pattern;
+      _gameSettings.winnerName = winner.name;
+      _gameSettings.winnerSign = winner.sign;
+      _gameSettings.winnerPattern = winner.pattern;
       console.log(
-        `Winner Sign: ${winner.sign} Winner Pattern: ${winner.pattern}`
+        `The Winner is: ${winner.name} Winner Sign: ${winner.sign} Winner Pattern: ${winner.pattern}`
       );
       _stopGame();
     } else {
@@ -107,14 +168,86 @@ const PlayBoard = (() => {
   };
 
   const _gameTieState = () => {
-    if (_movesLeft.length === 0 && _winnerState.winnerSign === "") {
+    if (_movesLeft.length === 0 && _gameSettings.winnerSign === "") {
       _stopGame();
       console.log("Game is tie");
     }
     return;
   };
 
-  const minimax = (board, sign) => {};
+  const minimax = (gameboard, depth, maximizing) => {
+    const winnerResult = _checkWinPattern(gameboard);
+    let chances = {
+      active: findSign(),
+      enemy: findSign() === "X" ? "O" : "X",
+    };
+
+    if (winnerResult !== null) {
+      if (winnerResult.sign === chances.active) return 10 - depth;
+      if (winnerResult.sign === chances.enemy) return -10 + depth;
+    }
+    if (_movesLeft.length === 0) return 0;
+
+    if (maximizing) {
+      let maxEval = -Infinity;
+      for (let i = 0; i < _movesLeft.length; i++) {
+        let index = _movesLeft[i];
+        gameboard[index] = chances.active;
+        _movesLeft.splice(i, 1);
+        let evaluation = minimax(gameboard, depth + 1, false);
+        gameboard[index] = "-";
+        _movesLeft.splice(i, 0, index);
+        maxEval = Math.max(evaluation, maxEval);
+      }
+
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (let i = 0; i < _movesLeft.length; i++) {
+        let index = _movesLeft[i];
+        gameboard[index] = chances.enemy;
+        _movesLeft.splice(i, 1);
+        let evaluation = minimax(gameboard, depth + 1, true);
+        gameboard[index] = "-";
+        _movesLeft.splice(i, 0, index);
+        minEval = Math.min(evaluation, minEval);
+      }
+      return minEval;
+    }
+  };
+
+  const makeAIMove = () => {
+    let bestValue = -Infinity;
+    let bestMove = null;
+
+    for (let i = 0; i < _movesLeft.length; i++) {
+      let index = _movesLeft[i];
+      _board[index] = findSign();
+      _movesLeft.splice(i, 1);
+      let moveValue = minimax(_board, 0, false);
+      _board[index] = "-";
+      _movesLeft.splice(i, 0, index);
+
+      if (moveValue > bestValue) {
+        bestValue = moveValue;
+        bestMove = index;
+      }
+    }
+
+    makeMove(bestMove);
+  };
+
+  const handleAIUser = () => {
+    let activeTurn = getTurn();
+    if (getMovesLeft().length === 0) {
+      return;
+    }
+    if (activeTurn !== undefined && activeTurn.playerState === "ai") {
+      setTimeout(() => {
+        makeAIMove();
+      }, 1000);
+    }
+  };
 
   const getAsConsoleBoard = () => {
     console.log(
@@ -135,7 +268,7 @@ const PlayBoard = (() => {
   };
 
   return Object.freeze({
-    findTurn,
+    findSign,
     getBoard,
     makeMove,
     makeRandomMove,
@@ -143,16 +276,10 @@ const PlayBoard = (() => {
     getMovesLeft,
     resetGame,
     getAsConsoleBoard,
+    makeAIMove,
+    createPlayer,
+    getActivePlayers,
+    startGame,
+    getTurn,
   });
 })();
-
-const createPlayer = (name, state = "player") => {
-  if (state !== "player" || state !== "ai") state = "player";
-  const playerName = name;
-  const playerState = state;
-
-  return Object.freeze({ playerName, playerState });
-};
-
-const PlayerOne = createPlayer("eren", "ai");
-const PlayerTwo = createPlayer("erenova", "ai");
