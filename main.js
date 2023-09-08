@@ -17,7 +17,7 @@ const PlayBoard = (() => {
 
   const _switchTurn = () => {
     _currentTurn = _currentTurn === "0" ? "1" : "0";
-    handleAIUser();
+    _handleAITurn();
   };
   const findSign = () => {
     if (_currentTurn === null) return undefined;
@@ -51,11 +51,17 @@ const PlayBoard = (() => {
       _switchTurn();
       console.log(_movesLeft);
       getAsConsoleBoard();
-      _decideGameState(getBoard());
+
+      let activeGameState = _decideGameState(getBoard());
+      if (activeGameState === false && getMovesLeft().length > 0)
+        console.log(
+          `${getTurn().playerName}'s Turn, ${getTurn().playerSign} Sign`
+        );
+
       return true; // Valid
     }
   };
-  const makeRandomMove = () => {
+  const _makeRandomMove = () => {
     let randomIndex = Math.floor(Math.random() * _movesLeft.length);
     randomIndex = _movesLeft[randomIndex];
     makeMove(randomIndex);
@@ -70,11 +76,18 @@ const PlayBoard = (() => {
 
   const getActivePlayers = () => [..._activePlayers];
 
-  const createPlayer = (name = "player one", state = "human", sign) => {
+  const _createPlayer = (name = "player one", state = "human", sign) => {
     if (_activePlayers.length === 1 && _activePlayers[0].playerName === name) {
       name += ` (2)`;
     }
-    state = state === "ai" ? "ai" : "human";
+    state =
+      state === "hardAI"
+        ? "hardAI"
+        : state === "medAI"
+        ? "medAI"
+        : state === "easyAI"
+        ? "easyAI"
+        : "human";
     let playerSign;
     if (_activePlayers.length === 1) {
       playerSign = _activePlayers[0].playerSign === "X" ? "O" : "X";
@@ -97,10 +110,11 @@ const PlayBoard = (() => {
       return `Please Enter Valid Data`;
     }
     resetGame();
-    createPlayer(player1.playerName, player1.playerState, player1.playerSign);
-    createPlayer(player2.playerName, player2.playerState, player2.playerSign);
+    _createPlayer(player1.playerName, player1.playerState, player1.playerSign);
+    _createPlayer(player2.playerName, player2.playerState, player2.playerSign);
     _currentTurn = getActivePlayers()[0].playerSign === "X" ? "0" : "1";
-    handleAIUser();
+    console.log(`${getTurn().playerName}'s Turn, ${getTurn().playerSign} Sign`);
+    _handleAITurn();
   };
 
   const _stopGame = () => {
@@ -162,20 +176,22 @@ const PlayBoard = (() => {
         `The Winner is: ${winner.name} Winner Sign: ${winner.sign} Winner Pattern: ${winner.pattern}`
       );
       _stopGame();
+      return true;
     } else {
       _gameTieState();
+      return false;
     }
   };
 
   const _gameTieState = () => {
-    if (_movesLeft.length === 0 && _gameSettings.winnerSign === "") {
+    if (_movesLeft.length === 0 && _gameSettings.winnerSign === undefined) {
       _stopGame();
       console.log("Game is tie");
     }
     return;
   };
 
-  const minimax = (gameboard, depth, maximizing) => {
+  const _minimax = (gameboard, depth, maximizing) => {
     const winnerResult = _checkWinPattern(gameboard);
     let chances = {
       active: findSign(),
@@ -194,7 +210,7 @@ const PlayBoard = (() => {
         let index = _movesLeft[i];
         gameboard[index] = chances.active;
         _movesLeft.splice(i, 1);
-        let evaluation = minimax(gameboard, depth + 1, false);
+        let evaluation = _minimax(gameboard, depth + 1, false);
         gameboard[index] = "-";
         _movesLeft.splice(i, 0, index);
         maxEval = Math.max(evaluation, maxEval);
@@ -207,7 +223,7 @@ const PlayBoard = (() => {
         let index = _movesLeft[i];
         gameboard[index] = chances.enemy;
         _movesLeft.splice(i, 1);
-        let evaluation = minimax(gameboard, depth + 1, true);
+        let evaluation = _minimax(gameboard, depth + 1, true);
         gameboard[index] = "-";
         _movesLeft.splice(i, 0, index);
         minEval = Math.min(evaluation, minEval);
@@ -216,7 +232,7 @@ const PlayBoard = (() => {
     }
   };
 
-  const makeAIMove = () => {
+  const _makeAIMove = () => {
     let bestValue = -Infinity;
     let bestMove = null;
 
@@ -224,7 +240,7 @@ const PlayBoard = (() => {
       let index = _movesLeft[i];
       _board[index] = findSign();
       _movesLeft.splice(i, 1);
-      let moveValue = minimax(_board, 0, false);
+      let moveValue = _minimax(_board, 0, false);
       _board[index] = "-";
       _movesLeft.splice(i, 0, index);
 
@@ -237,15 +253,31 @@ const PlayBoard = (() => {
     makeMove(bestMove);
   };
 
-  const handleAIUser = () => {
+  const _handleAITurn = () => {
     let activeTurn = getTurn();
     if (getMovesLeft().length === 0) {
       return;
     }
-    if (activeTurn !== undefined && activeTurn.playerState === "ai") {
-      setTimeout(() => {
-        makeAIMove();
-      }, 1000);
+    if (activeTurn !== undefined) {
+      if (activeTurn.playerState === "hardAI") {
+        setTimeout(() => {
+          _makeAIMove();
+        }, 1000);
+      } else if (activeTurn.playerState === "easyAI") {
+        setTimeout(() => {
+          _makeRandomMove();
+        }, 1000);
+      } else if (activeTurn.playerState === "medAI") {
+        if (getMovesLeft().length === 8 || getMovesLeft().length === 9) {
+          setTimeout(() => {
+            _makeRandomMove();
+          }, 800);
+        } else {
+          setTimeout(() => {
+            _makeAIMove();
+          }, 800);
+        }
+      }
     }
   };
 
@@ -271,15 +303,13 @@ const PlayBoard = (() => {
     findSign,
     getBoard,
     makeMove,
-    makeRandomMove,
     getIndexValue,
     getMovesLeft,
     resetGame,
     getAsConsoleBoard,
-    makeAIMove,
-    createPlayer,
     getActivePlayers,
     startGame,
     getTurn,
+    _gameSettings,
   });
 })();
