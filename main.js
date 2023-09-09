@@ -310,6 +310,5 @@ const PlayBoard = (() => {
     getActivePlayers,
     startGame,
     getTurn,
-    _gameSettings,
   });
 })();
