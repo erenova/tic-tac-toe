@@ -17,11 +17,27 @@
             <div id="first-player" class="player">
                 <div class="name-section">
                     <label for="firstUserName" class="label-name">Player 1 Name:</label>
-                    <input type="text" name="firstUserName" id="firstUserName" required>
+                    <input type="text" name="firstUserName" id="firstUserName" required maxlength="15">
                 </div>
-                <div id="player-one-state" class="player-state-selection">
+                <div id="player-one-state-selection" class="player-state-selection">
+                    <div class="player-state-title">Player State selection</div>
+
+                    <div class="state-list">
+
+                        <div id="player-one-human-state" class="human-state player-state-box" data-selected-one="none">
+                            <button type="button">Human</button>
+                        </div>
+                        <div id="player-one-ai-state" class="ai-state player-state-box" data-selected-one="none"><button
+                                type="button">AI</button>
+                            <div class="panel">
+                                <button type="button">Easy</button>
+                                <button type="button">Medium</button>
+                                <button type="button">Hard</button>
+                            </div>
 
 
+                        </div>
+                    </div>
 
                 </div>
 
@@ -29,12 +45,34 @@
             <div id="second-player" class="player">
                 <div class="name-section">
                     <label for="secondUserName" class="label-name">Player 2 Name:</label>
-                    <input type="text" name="secondUserName" id="secondUserName" required>
+                    <input type="text" name="secondUserName" id="secondUserName" required maxlength="15">
+                </div>
+                <div id="player-two-state-selection" class="player-state-selection">
+                    <div class="player-state-title">Player State selection</div>
+
+                    <div class="state-list">
+
+                        <div id="player-two-human-state" class="human-state player-state-box" data-selected-two="none">
+                            <button type="button">Human</button>
+                        </div>
+                        <div id="player-two-ai-state" class="ai-state player-state-box" data-selected-two="none">
+                            <button type="button">AI</button>
+                            <div class="panel">
+                                <button type="button" data-state="easy">Easy</button>
+                                <button type="button" data-state="med">Medium</button>
+                                <button type="button" data-state="hard">Hard</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
         <div class="start-game"></div>
 
+    </div>
+    <div class="gameboard-screen passive">
+        hey
     </div>
     <div class="footer"></div>
 </body>
