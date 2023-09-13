@@ -529,11 +529,12 @@ const gameController = (function () {
     interTitle.innerText = "";
   };
   const updateGrid = (index) => {
-    if (PlayBoard.getIndexValue(index) !== "-")
+    if (PlayBoard.getIndexValue(index) !== "-") {
       gridList[index].firstChild.textContent = PlayBoard.getIndexValue(index);
-    setTimeout(() => {
-      gridList[index].firstChild.classList.remove("hidden");
-    }, 100);
+      setTimeout(() => {
+        gridList[index].firstChild.classList.remove("hidden");
+      }, 100);
+    }
   };
 
   /* Start game button */
@@ -641,13 +642,14 @@ const gameController = (function () {
 
   /* winner glow */
   const winnerGlow = (give) => {
-    if (PlayBoard.getWinner() !== undefined) {
-      let glowList = [
-        PlayBoard.getWinner().winnerPattern[0] || null,
-        PlayBoard.getWinner().winnerPattern[1] || null,
-        PlayBoard.getWinner().winnerPattern[2] || null,
-      ];
-      if (give) {
+    if (give) {
+      if (PlayBoard.getWinner() !== undefined) {
+        let glowList = [
+          PlayBoard.getWinner().winnerPattern[0] || null,
+          PlayBoard.getWinner().winnerPattern[1] || null,
+          PlayBoard.getWinner().winnerPattern[2] || null,
+        ];
+
         gridList[glowList[0]].classList.add("win-glow");
         gridList[glowList[1]].classList.add("win-glow");
         gridList[glowList[2]].classList.add("win-glow");
@@ -691,5 +693,5 @@ const gameController = (function () {
     });
   });
 
-  return { PlayBoard, collectValues };
+  return { PlayBoard, collectValues, updateGrid, gridList };
 })();
