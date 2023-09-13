@@ -411,3 +411,23 @@ button.active {
     width: 90%;
   }
 }
+
+/* Footer */
+.footer {
+  position: absolute;
+  bottom: 0;
+  height: 3%;
+  font-family: "ralewayregular", sans-serif;
+  width: 100%;
+  background-color: grey;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.footer > * {
+  white-space: pre-line;
+}
+a {
+  color: black;
+}
