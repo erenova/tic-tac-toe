@@ -39,6 +39,10 @@ button {
   cursor: pointer;
 }
 
+button:focus {
+  outline: 1px solid rgb(78, 78, 78);
+}
+
 #first-player {
   border-right: #020617 1px solid;
 }
@@ -252,6 +256,10 @@ button.active {
   font-size: 3rem;
   font-weight: bolder;
   font-family: "norseregular", sans-serif;
+  transition: opacity 0.5s ease-in-out;
+}
+.vanish {
+  opacity: 0;
 }
 
 .switch-signs {
@@ -259,12 +267,34 @@ button.active {
   left: 50%;
   top: 50%;
   transform: translate(-50%, 50%);
+  transition: all 200ms ease;
 }
 
 .switch-signs > button {
   width: 45px;
 }
 
+.switch-signs:active {
+  transform: translate(-50%, 50%) scale(0.95);
+}
+
+/* Start game section */
+
+.start-game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.start-game-button {
+  font-family: "ralewayregular", sans-serif;
+  width: 50%;
+  height: 50%;
+  transition: all 300ms ease;
+}
+.start-game-button:hover {
+  background-color: #bc13fe;
+  color: white;
+}
 /* Gameboard styling */
 
 .gameboard-screen {
