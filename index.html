@@ -22,17 +22,17 @@
                 <div id="player-one-state-selection" class="player-state-selection">
                     <div class="player-state-title">Player State selection</div>
 
-                    <div class="state-list">
+                    <div class="state-list" id="player-one-list" data-player="human">
 
-                        <div id="player-one-human-state" class="human-state player-state-box" data-selected-one="none">
-                            <button type="button">Human</button>
+                        <div id="player-one-human-state" class="human-state player-state-box active">
+                            <button type="button" data-id="human">Human</button>
                         </div>
-                        <div id="player-one-ai-state" class="ai-state player-state-box" data-selected-one="none"><button
-                                type="button">AI</button>
-                            <div class="panel">
-                                <button type="button">Easy</button>
-                                <button type="button">Medium</button>
-                                <button type="button">Hard</button>
+                        <div id="player-one-ai-state" class="ai-state player-state-box"><button type="button"
+                                id="player-one-ai-button" data-id="easyAI">AI</button>
+                            <div data-player-one-panel class="panel" id="p1">
+                                <button data-diff="easyAI" type="button">Easy</button>
+                                <button data-diff="medAI" type="button">Medium</button>
+                                <button data-diff="hardAI" type="button">Hard</button>
                             </div>
 
 
@@ -41,6 +41,10 @@
 
                 </div>
 
+                <div id="player-one-sign" class="player-sign">
+                    <div class="player-sign-title" id="player-one-sign-title">Player Sign Selection</div>
+                    <div data-player-one-sign="X" class="selected-sign">X</div>
+                </div>
             </div>
             <div id="second-player" class="player">
                 <div class="name-section">
@@ -50,24 +54,30 @@
                 <div id="player-two-state-selection" class="player-state-selection">
                     <div class="player-state-title">Player State selection</div>
 
-                    <div class="state-list">
+                    <div class="state-list" id="player-two-list" data-player="human">
 
-                        <div id="player-two-human-state" class="human-state player-state-box" data-selected-two="none">
-                            <button type="button">Human</button>
+                        <div id="player-two-human-state" class="human-state player-state-box active">
+                            <button type="button" data-id="human">Human</button>
                         </div>
-                        <div id="player-two-ai-state" class="ai-state player-state-box" data-selected-two="none">
-                            <button type="button">AI</button>
-                            <div class="panel">
-                                <button type="button" data-state="easy">Easy</button>
-                                <button type="button" data-state="med">Medium</button>
-                                <button type="button" data-state="hard">Hard</button>
+                        <div id="player-two-ai-state" class="ai-state player-state-box">
+                            <button type="button" id="player-two-ai-button" data-id="easyAI">AI</button>
+                            <div data-player-two-panel class="panel">
+                                <button type="button" data-diff="easyAI">Easy</button>
+                                <button type="button" data-diff="medAI">Medium</button>
+                                <button type="button" data-diff="hardAI">Hard</button>
                             </div>
                         </div>
                     </div>
 
                 </div>
+                <div id="player-two-sign" class="player-sign">
+                    <div class="player-sign-title" id="player-two-sign-title">Player Sign Selection</div>
+                    <div data-player-two-sign="O" class="selected-sign">O</div>
+                </div>
             </div>
         </div>
+        <div id="switch-sign" class="switch-signs"><button><i class="fa-solid fa-repeat"></i></button></div>
+
         <div class="start-game"></div>
 
     </div>
@@ -75,6 +85,7 @@
         hey
     </div>
     <div class="footer"></div>
+    <script src="https://kit.fontawesome.com/c92ddab15c.js" crossorigin="anonymous"></script>
 </body>
 
 </html>
