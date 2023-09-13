@@ -325,15 +325,107 @@ const gameController = (function () {
       ? document.querySelectorAll(selector)
       : document.querySelector(selector);
 
-  const changeSelectedAttributes = (attribute, valueOf) => {
-    getDomItem(attribute, true).forEach((element) => {
-      element.value = valueOf;
+  const resetAllActiveItems = (playerId) => {
+    getDomItem(`#${playerId}-ai-state .panel button`, true).forEach((item) => {
+      item.classList.remove("active");
+    });
+    getDomItem(`#${playerId}-ai-state`).classList.remove("active");
+    getDomItem(`#${playerId}-human-state`).classList.remove("active");
+  };
+
+  const handlePlayerChoice = (playerId) => {
+    getDomItem(`#${playerId}-state-selection [data-id]`, true).forEach(
+      (element) => {
+        element.addEventListener("click", (e) => {
+          const datasetVal = e.target.dataset.id;
+          resetAllActiveItems(playerId);
+          if (datasetVal === "human") {
+            resetAllActiveItems(playerId);
+
+            getDomItem(`#${playerId}-list`).dataset.player =
+              e.target.dataset.id;
+            getDomItem(`[data-${playerId}-panel]`).classList.remove("active");
+            getDomItem(`#${playerId}-ai-button`).innerText = "AI";
+            getDomItem(`#${playerId}-ai-button`).classList.remove("active");
+            getDomItem(`#${playerId}-human-state`).classList.add("active");
+          }
+          if (
+            getDomItem(`#${playerId}-list`).dataset.player === "medAI" ||
+            getDomItem(`#${playerId}-list`).dataset.player === "hardAI"
+          ) {
+            getDomItem(`#${playerId}-ai-state`).classList.add("active");
+
+            return;
+          }
+          if (datasetVal === "easyAI") {
+            getDomItem(`#${playerId}-list`).dataset.player =
+              e.target.dataset.id;
+            getDomItem(`#${playerId}-ai-button`).innerText =
+              e.target.dataset.id;
+            getDomItem(`#${playerId}-ai-state`).classList.add("active");
+            getDomItem(
+              `#${playerId}-ai-state .panel button:first-child`
+            ).classList.add("active");
+          }
+        });
+      }
+    );
+  };
+
+  const handleDifficultyChoice = (playerId) => {
+    getDomItem(`#${playerId}-ai-state .panel button`, true).forEach((item) => {
+      item.addEventListener("click", (e) => {
+        getDomItem(`#${playerId}-ai-state .panel button`, true).forEach(
+          (button) => {
+            button.classList.remove("active");
+          }
+        );
+        getDomItem(`#${playerId}-list`).dataset.player = e.target.dataset.diff;
+        getDomItem(`#${playerId}-ai-button`).innerText = e.target.dataset.diff;
+        getDomItem(`#${playerId}-human-state`).classList.remove("active");
+        getDomItem(`#${playerId}-ai-button`).classList.add("active");
+        e.target.classList.add("active");
+      });
     });
   };
 
-  getDomItem("[data-selected-one]", true).forEach((activeItem) => {
-    activeItem.addEventListener("click", () => {});
+  // Handle choices for the first and second players
+  handlePlayerChoice("player-one");
+  handlePlayerChoice("player-two");
+
+  // Handle difficulty choices for the first and second players
+  handleDifficultyChoice("player-one");
+  handleDifficultyChoice("player-two");
+
+  getDomItem("#switch-sign").addEventListener("click", () => {
+    let signX = getDomItem(`[data-player-sign="X"]`);
+    let signO = getDomItem(`[data-player-sign="O"]`);
+
+    if (!signX || !signO) {
+      getDomItem(`[data-player-sign]`, true)[0].dataset.playerSign = `X`;
+      getDomItem(`[data-player-sign]`, true)[1].dataset.playerSign = `O`;
+    } else {
+      // Add vanish class to make them disappear
+      signX.classList.add("vanish");
+      signO.classList.add("vanish");
+
+      // Replace with new signs after 1 second (1000ms)
+      setTimeout(() => {
+        signX.textContent = "O";
+        signO.textContent = "X";
+
+        // Remove vanish class to make them reappear
+        signX.classList.remove("vanish");
+        signO.classList.remove("vanish");
+
+        // Toggle the player signs
+        signX.dataset.playerSign = `O`;
+        signO.dataset.playerSign = `X`;
+      }, 550);
+    }
   });
+
+  const collectValues = (p1, p2) => {};
 
   const updateLabelVisibility = (inputElement, labelElement) => {
     labelElement.classList.remove("label-focused", "label-filled");
