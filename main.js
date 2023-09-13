@@ -692,6 +692,4 @@ const gameController = (function () {
       });
     });
   });
-
-  return { PlayBoard, collectValues, updateGrid, gridList };
 })();
