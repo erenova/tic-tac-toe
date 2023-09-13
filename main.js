@@ -76,6 +76,22 @@ const gameController = (function () {
       let randomIndex = Math.floor(Math.random() * _movesLeft.length);
       randomIndex = _movesLeft[randomIndex];
       makeMove(randomIndex);
+      updateGrid(randomIndex);
+      if (gameTieState()) {
+        updateTieTitle();
+        activateResetButtons();
+        winnerGlow(false);
+
+        return;
+      }
+      if (getWinner() === undefined) {
+        updateTitle();
+      } else {
+        winnerGlow(true);
+        updateWinnerTitle();
+        stopGame();
+        activateResetButtons();
+      }
     };
     const getBoard = () => [..._board];
 
@@ -146,8 +162,7 @@ const gameController = (function () {
       _handleAITurn();
     };
 
-    const _stopGame = () => {
-      _gameSettings.winnerPattern = undefined;
+    const stopGame = () => {
       _movesLeft = [];
       _activePlayers = [];
       _currentTurn = null;
@@ -155,8 +170,11 @@ const gameController = (function () {
     };
 
     const resetGame = () => {
+      _gameSettings.winnerPattern = undefined;
       _gameSettings.winnerSign = undefined;
-      _stopGame();
+      _gameSettings.winnerName = undefined;
+
+      stopGame();
       _movesLeft = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
       _board.fill("-");
       console.log("New Game Started!");
@@ -196,20 +214,22 @@ const gameController = (function () {
         console.log(
           `The Winner is: ${winner.name} Winner Sign: ${winner.sign} Winner Pattern: ${winner.pattern}`
         );
-        _stopGame();
+        stopGame();
         return true;
       } else {
-        _gameTieState();
+        gameTieState();
         return false;
       }
     };
 
-    const _gameTieState = () => {
+    const gameTieState = () => {
       if (_movesLeft.length === 0 && _gameSettings.winnerSign === undefined) {
-        _stopGame();
-        console.log("Game is tie");
+        stopGame();
+
+        return true;
       }
-      return;
+
+      return false;
     };
 
     const _minimax = (gameboard, depth, maximizing) => {
@@ -272,21 +292,52 @@ const gameController = (function () {
       }
 
       makeMove(bestMove);
+      updateGrid(bestMove);
+
+      if (gameTieState()) {
+        updateTieTitle();
+        activateResetButtons();
+        winnerGlow(false);
+
+        return;
+      }
+      if (getWinner() === undefined) {
+        updateTitle();
+      } else {
+        winnerGlow(true);
+        updateWinnerTitle();
+        stopGame();
+        activateResetButtons();
+      }
     };
 
     const _handleAITurn = () => {
       const activeTurn = getTurn();
       if (!_movesLeft.length || !activeTurn) return;
-
       const delay = activeTurn.playerState === "medAI" ? 800 : 1000;
       setTimeout(() => {
-        if (activeTurn.playerState === "hardAI") _makeAIMove();
+        if (activeTurn.playerState === "hardAI")
+          if (_movesLeft.length === 9)
+            setTimeout(() => {
+              _makeAIMove();
+            }, 500);
+          else {
+            _makeAIMove();
+          }
         else if (activeTurn.playerState === "easyAI") _makeRandomMove();
         else if (activeTurn.playerState === "medAI") {
           if (_movesLeft.length > 7) _makeRandomMove();
           else _makeAIMove();
         }
       }, delay);
+    };
+
+    const getWinner = () => {
+      const clone = Object.assign({}, _gameSettings);
+      if (clone.winnerName === undefined) {
+        return undefined;
+      }
+      return clone;
     };
 
     const getAsConsoleBoard = () => {
@@ -318,8 +369,12 @@ const gameController = (function () {
       getActivePlayers,
       startGame,
       getTurn,
+      getWinner,
+      stopGame,
+      gameTieState,
     });
   })();
+
   const getDomItem = (selector, all = false) =>
     all
       ? document.querySelectorAll(selector)
@@ -425,7 +480,184 @@ const gameController = (function () {
     }
   });
 
-  const collectValues = (p1, p2) => {};
+  const collectValues = () => {
+    const playerOne = {};
+    const playerTwo = {};
+    let firstPlayerName = getDomItem("#firstUserName").value;
+    let firstPlayerState = getDomItem("#player-one-list").dataset.player;
+    let firstPlayerSign = getDomItem("#player-one-sign>[data-player-sign]")
+      .dataset.playerSign;
+    let secondPlayerName = getDomItem("#secondUserName").value;
+    let secondPlayerState = getDomItem("#player-two-list").dataset.player;
+    let secondPlayerSign = getDomItem("#player-two-sign>[data-player-sign]")
+      .dataset.playerSign;
+    if (firstPlayerName !== "") playerOne.playerName = firstPlayerName;
+    playerOne.playerState = firstPlayerState;
+    playerOne.playerSign = firstPlayerSign;
+    if (secondPlayerName !== "") playerTwo.playerName = secondPlayerName;
+    playerTwo.playerState = secondPlayerState;
+    playerTwo.playerSign = secondPlayerSign;
+
+    return { playerOne, playerTwo };
+  };
+
+  const updateTitle = () => {
+    const turnSec = getDomItem(".active-player-name");
+    const interTitle = getDomItem(".intertitle");
+    interTitle.innerText = `'s Turn sign:`;
+    const turnSign = getDomItem(".active-sign-symbol");
+
+    const getTurnVal = PlayBoard.getTurn();
+    turnSec.innerText = getTurnVal.playerName;
+    turnSign.innerText = getTurnVal.playerSign;
+  };
+  const updateWinnerTitle = () => {
+    const turnSec = getDomItem(".active-player-name");
+    const interTitle = getDomItem(".intertitle");
+    winnerGlow(true);
+
+    interTitle.innerText = "";
+    turnSec.innerText = `Winner Is: ${PlayBoard.getWinner().winnerName}`;
+  };
+
+  const updateTieTitle = () => {
+    const turnSec = getDomItem(".active-player-name");
+    const turnSign = getDomItem(".active-sign-symbol");
+    const interTitle = getDomItem(".intertitle");
+    turnSec.innerText = `Game Tie`;
+    turnSign.innerText = "";
+    interTitle.innerText = "";
+  };
+  const updateGrid = (index) => {
+    if (PlayBoard.getIndexValue(index) !== "-")
+      gridList[index].firstChild.textContent = PlayBoard.getIndexValue(index);
+    setTimeout(() => {
+      gridList[index].firstChild.classList.remove("hidden");
+    }, 100);
+  };
+
+  /* Start game button */
+  getDomItem("[data-start-game]").addEventListener("click", () => {
+    const mainMenu = getDomItem(".main-menu");
+    const gameboardScreen = getDomItem(".gameboard-screen");
+
+    mainMenu.classList.remove("active");
+    mainMenu.classList.add("progress");
+    setTimeout(() => {
+      mainMenu.classList.add("passive");
+      gameboardScreen.classList.remove("passive");
+      gameboardScreen.classList.add("progress");
+    }, 475);
+    setTimeout(() => {
+      gameboardScreen.classList.add("active");
+    }, 575);
+    let val = collectValues();
+    PlayBoard.startGame(val.playerOne, val.playerTwo);
+    updateTitle();
+    repeatScenario();
+  });
+
+  /* Making move on UI */
+  const gridList = getDomItem(".grid-item", true);
+  for (let i = 0; i < gridList.length; i++) {
+    gridList[i].addEventListener("click", () => {
+      const isAi = PlayBoard.getTurn().playerState.includes("AI");
+
+      if (!isAi) {
+        if (PlayBoard.getActivePlayers().length === 2) {
+          PlayBoard.makeMove(i);
+          updateGrid(i);
+          if (PlayBoard.gameTieState()) {
+            updateTieTitle();
+            activateResetButtons();
+
+            return;
+          }
+          if (PlayBoard.getWinner() === undefined) {
+            updateTitle();
+          } else {
+            winnerGlow(true);
+            updateWinnerTitle();
+            PlayBoard.stopGame();
+            activateResetButtons();
+          }
+        }
+      }
+    });
+  }
+
+  /* Reset buttons */
+  /* repeat btn */
+  getDomItem('[data-button-type="repeat"]').addEventListener("click", () => {
+    repeatScenario();
+    winnerGlow(false);
+    let val = collectValues();
+    PlayBoard.startGame(val.playerOne, val.playerTwo);
+    updateTitle();
+  });
+
+  /* back btn */
+  getDomItem('[data-button-type="reset"]').addEventListener("click", () => {
+    const mainMenu = getDomItem(".main-menu");
+    const gameboardScreen = getDomItem(".gameboard-screen");
+
+    gameboardScreen.classList.remove("active");
+    gameboardScreen.classList.add("progress");
+    setTimeout(() => {
+      gameboardScreen.classList.add("passive");
+      mainMenu.classList.remove("passive");
+      mainMenu.classList.add("progress");
+    }, 475);
+    setTimeout(() => {
+      mainMenu.classList.add("active");
+    }, 575);
+  });
+
+  const repeatScenario = () => {
+    let gridList = getDomItem(".sign-val.hidden", true);
+    gridList.forEach((item) => {
+      item.classList.remove("hidden");
+    });
+    gridList = getDomItem(".sign-val", true);
+    gridList.forEach((element) => {
+      element.classList.add("hidden");
+    });
+    disableResetButtons();
+    winnerGlow(false);
+  };
+
+  const activateResetButtons = () => {
+    getDomItem(".reset-buttons").classList.add("progress");
+    setTimeout(() => {
+      getDomItem(".reset-buttons").classList.add("active");
+    }, 50);
+  };
+  const disableResetButtons = () => {
+    getDomItem(".reset-buttons").classList.remove("active");
+    setTimeout(() => {
+      getDomItem(".reset-buttons").classList.remove("progress");
+    }, 100);
+  };
+
+  /* winner glow */
+  const winnerGlow = (give) => {
+    if (PlayBoard.getWinner() !== undefined) {
+      let glowList = [
+        PlayBoard.getWinner().winnerPattern[0] || null,
+        PlayBoard.getWinner().winnerPattern[1] || null,
+        PlayBoard.getWinner().winnerPattern[2] || null,
+      ];
+      if (give) {
+        gridList[glowList[0]].classList.add("win-glow");
+        gridList[glowList[1]].classList.add("win-glow");
+        gridList[glowList[2]].classList.add("win-glow");
+      }
+    } else {
+      gridList.forEach((item) => {
+        item.classList.remove("win-glow");
+      });
+    }
+  };
 
   const updateLabelVisibility = (inputElement, labelElement) => {
     labelElement.classList.remove("label-focused", "label-filled");
@@ -459,5 +691,5 @@ const gameController = (function () {
     });
   });
 
-  return { PlayBoard };
+  return { PlayBoard, collectValues };
 })();
