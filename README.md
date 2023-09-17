@@ -4,7 +4,7 @@
 
 This repository contains the source code for an advanced Tic-Tac-Toe game, developed as part of a personal project to deepen my understanding of algorithms and web development. The game is built using HTML, CSS, and JavaScript (ES6+).
 
-**Demo**: <a href="https://example.com" target="_blank">Test it here!</a>
+**Demo**: <a href="https://erenova.github.io/tic-tac-toe" target="_blank">Test it here!</a>
 
 ## Features
 
